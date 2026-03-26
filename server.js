@@ -5,11 +5,11 @@ const cors = require('cors');
 
 const app = express();
 
-// 🟢 CRITICAL FIX: This tells the browser the Arbor Wallet is allowed to talk to us
+// 🟢 THIS IS THE MISSING KEY:
+// It tells the browser that the Arbor Wallet is a trusted friend.
 app.use(cors({
     origin: "*", 
-    methods: ["GET", "POST"],
-    allowedHeaders: ["Content-Type", "Authorization"]
+    methods: ["GET", "POST"]
 }));
 
 app.get('/', (req, res) => {
@@ -21,11 +21,10 @@ const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
     origin: "*",
-    methods: ["GET", "POST"],
-    credentials: false // Changed to false to work better with origin: "*"
+    methods: ["GET", "POST"]
   },
   allowEIO3: true,
-  transports: ['websocket', 'polling'] // 🟢 Force both to bypass hotel/strict firewalls
+  transports: ['websocket', 'polling'] 
 });
 
 io.on('connection', (socket) => {
