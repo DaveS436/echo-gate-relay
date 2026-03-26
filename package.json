@@ -1,7 +1,7 @@
 {
   "name": "echo-gate-relay",
   "version": "1.0.0",
-  "description": "Permanent signaling relay for Trin and EchoDaemon",
+  "description": "Signaling relay for Phinary network",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
