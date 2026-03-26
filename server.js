@@ -5,12 +5,8 @@ const cors = require('cors');
 
 const app = express();
 
-// 🟢 THIS IS THE MISSING KEY:
-// It tells the browser that the Arbor Wallet is a trusted friend.
-app.use(cors({
-    origin: "*", 
-    methods: ["GET", "POST"]
-}));
+// 🟢 THE KEY FIX: This line tells the browser the Wallet is a trusted friend.
+app.use(cors()); 
 
 app.get('/', (req, res) => {
   res.send({ status: "LAMINAR", system: "Echo-Gate-Relay", version: "2.2" });
