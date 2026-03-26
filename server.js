@@ -1,42 +1,41 @@
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
+const cors = require('cors');
 
 const app = express();
-const server = http.createServer(app);
-
-// Enable CORS for your Base44 app
-const io = new Server(server, {
-  cors: {
-    origin: "*", 
-    methods: ["GET", "POST"]
-  }
+// Enable standard CORS for the express health check
+app.get('/', (req, res) => {
+  res.send({ status: "LAMINAR", system: "Echo-Gate-Relay", version: "2.1" });
 });
 
-// Health Check Route
-app.get('/', (req, res) => {
-  res.send({ status: "LAMINAR", system: "Echo-Gate-Relay", version: "2.0" });
+const server = http.createServer(app);
+
+// Enable Aggressive CORS for Socket.io
+const io = new Server(server, {
+  cors: {
+    origin: "*", // Allows any domain to connect
+    methods: ["GET", "POST"],
+    credentials: true
+  },
+  allowEIO3: true // Support for older client versions
 });
 
 io.on('connection', (socket) => {
-  console.log(`[Gate] New connection: ${socket.id}`);
+  console.log(`[Gate] Node Attempting Connection: ${socket.id}`);
 
-  // Registration for permanent Node IDs (e.g., 'S25_Alpha')
   socket.on('register', (nodeId) => {
     socket.join(nodeId);
-    console.log(`[Gate] Node registered as: ${nodeId}`);
+    console.log(`[Gate] Node registered successfully: ${nodeId}`);
   });
 
-  // Signal Relay Logic
   socket.on('signal', (data) => {
-    if (!data.to || !data.signal) {
-      socket.emit('error', 'Invalid signal data');
-      return;
+    if (data.to && data.signal) {
+      io.to(data.to).emit('signal', {
+        from: socket.id,
+        signal: data.signal
+      });
     }
-    io.to(data.to).emit('signal', {
-      from: socket.id,
-      signal: data.signal
-    });
   });
 
   socket.on('disconnect', () => {
@@ -44,7 +43,6 @@ io.on('connection', (socket) => {
   });
 });
 
-// Graceful Shutdown for Railway
 process.on('SIGTERM', () => {
   server.close(() => process.exit(0));
 });
