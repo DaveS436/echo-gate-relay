@@ -5,9 +5,9 @@ const cors = require('cors');
 
 const app = express();
 
-// 1. Explicitly allow ALL origins for the Express Handshake
+// 🟢 CRITICAL FIX: This tells the browser the Arbor Wallet is allowed to talk to us
 app.use(cors({
-    origin: "*",
+    origin: "*", 
     methods: ["GET", "POST"],
     allowedHeaders: ["Content-Type", "Authorization"]
 }));
@@ -18,14 +18,14 @@ app.get('/', (req, res) => {
 
 const server = http.createServer(app);
 
-// 2. Explicitly configure the Socket.io CORS
 const io = new Server(server, {
   cors: {
-    origin: "*", 
+    origin: "*",
     methods: ["GET", "POST"],
-    credentials: false // Setting to false often helps with "origin: *"
+    credentials: false // Changed to false to work better with origin: "*"
   },
-  transports: ['websocket', 'polling'] // Force both methods
+  allowEIO3: true,
+  transports: ['websocket', 'polling'] // 🟢 Force both to bypass hotel/strict firewalls
 });
 
 io.on('connection', (socket) => {
