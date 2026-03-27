@@ -6,20 +6,24 @@ const cors = require("cors");
 const app = express();
 const server = http.createServer(app);
 
-// 1. Force Express to allow everything
-app.use(cors());
+// 1. Universal CORS Configuration
+// This allows the browser on your high-end PC to safely talk to Railway
+app.use(cors({
+  origin: true, // Dynamically allows the Base44 preview origin
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+}));
 
-// 2. The Socket.io "Master Key"
 const io = new Server(server, {
   cors: {
-    // This function automatically reflects the Base44 origin
     origin: (origin, callback) => {
-      callback(null, true); 
+      // Allows the handshake from any origin to prevent pre-flight failures
+      callback(null, true);
     },
     methods: ["GET", "POST"],
     credentials: true
   },
-  // v2.2 Tuning for Mobile-to-PC stability
+  // v2.2 Tuning for stability between your PC and S25
   pingTimeout: 60000,
   pingInterval: 25000,
   allowEIO3: true
@@ -27,27 +31,32 @@ const io = new Server(server, {
 
 const PORT = process.env.PORT || 3000;
 
+// 2. Network Relay Events
 io.on("connection", (socket) => {
-  console.log(`Arborist Active: ${socket.id}`);
+  console.log(`Node Connected: ${socket.id}`);
 
   socket.on("node_signal", (data) => {
-    // Relay the S25 data to the PC Dashboard
-    io.emit("vortex_update", data);
+    // Relays the signal from your S25 to your PC Dashboard
+    io.emit("vortex_update", {
+      ...data,
+      relayStatus: "Laminar",
+      timestamp: Date.now()
+    });
   });
 
   socket.on("disconnect", () => {
-    console.log(`Node Dormant: ${socket.id}`);
+    console.log(`Node Disconnected: ${socket.id}`);
   });
 });
 
-// Health Check URL
+// 3. Health Check Endpoints
+// Base44 checks these to turn the bridge "Green"
 app.get("/", (req, res) => {
-  res.json({ 
-    status: "LAMINAR", 
-    system: "Echo-Gate-Relay", 
-    version: "2.2",
-    bridge: "Active"
-  });
+  res.json({ status: "LAMINAR", system: "Echo-Gate-Relay", version: "2.2" });
+});
+
+app.get("/api/admin/status", (req, res) => {
+  res.json({ status: "ONLINE", bridge: "SECURE" });
 });
 
 server.listen(PORT, "0.0.0.0", () => {
