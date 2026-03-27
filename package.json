@@ -1,7 +1,7 @@
 {
   "name": "echo-gate-relay",
-  "version": "2.2.0",
-  "description": "Laminar Signaling Relay for the Arbor Mesh Network",
+  "version": "2.2.0", 
+  "description": "Laminar Signaling Relay v2.2 - SECURE",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
